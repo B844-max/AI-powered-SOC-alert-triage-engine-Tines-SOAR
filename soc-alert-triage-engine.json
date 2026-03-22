@@ -1,0 +1,467 @@
+{
+  "schema_version": 28,
+  "standard_lib_version": 87,
+  "action_runtime_version": 71,
+  "name": "SOC Alert Triage Engine",
+  "description": null,
+  "guid": "ebff7ee5059f9cd8268503853be122dd",
+  "slug": "soc_alert_triage_engine",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "webhook_action",
+      "disabled": false,
+      "description": null,
+      "guid": "50adabc0ec57627d7d4048c4f0f9f1f7",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "path": "cd7c1a8f36d00035bd1b9ed783ac7bac",
+        "secret": "cd9c6f6b4af8c43256f024fe5f593c08",
+        "verbs": "get,post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "abuseipdb",
+      "disabled": false,
+      "description": null,
+      "guid": "104cbfef578cdba527e98a071f45bf00",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "url": "https://api.abuseipdb.com/api/v2/check",
+        "content_type": "application_json",
+        "method": "get",
+        "headers": {
+          "Key": "",
+          "Accept": "application/json"
+        },
+        "payload": {
+          "maxAgeInDays": "90",
+          "ipAddress": "<<webhook_action.body.src_ip>>",
+          "verbose": "true"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "virustotal",
+      "disabled": false,
+      "description": null,
+      "guid": "dadd001c4ccc56dca10871bdc85f80bd",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "url": "https://www.virustotal.com/api/v3/ip_addresses/<<webhook_action.body.src_ip>>",
+        "content_type": "application_json",
+        "method": "get",
+        "headers": {
+          "x-apikey": "",
+          "Accept": "application/json"
+        },
+        "payload": {
+          "key": "value",
+          "array_example": [
+            "foo",
+            "bar"
+          ],
+          "object_example": {
+            "key": "value"
+          }
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "shodan",
+      "disabled": false,
+      "description": null,
+      "guid": "ffec7eb822eeeee3867c40bcba58aa89",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "url": "https://api.shodan.io/shodan/host/<<webhook_action.body.src_ip>>",
+        "content_type": "application_json",
+        "method": "get",
+        "headers": {
+          "Accept": "application/json"
+        },
+        "payload": {
+          "key": ""
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "merge_enrichment",
+      "disabled": false,
+      "description": null,
+      "guid": "65f360b8c1062c893afebf6f831d3256",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "src_ip": "<<webhook_action.body.src_ip>>",
+          "alert_name": "<<webhook_action.body.alert_name>>",
+          "severity": "<<webhook_action.body.severity>>",
+          "host": "<<webhook_action.headers.host>>",
+          "event_id": "<<webhook_action.headers.x_amzn_trace_id>>",
+          "abuse_score": "<<abuseipdb.body.data.abuseConfidenceScore>>",
+          "abuse_country": "<<abuseipdb.body.data.countryName>>",
+          "abuse_isp": "<<abuseipdb.body.data.isp>>",
+          "abuse_total_reports": "<<abuseipdb.body.data.totalReports>>",
+          "abuse_usage_type": "<<abuseipdb.body.data.usageType>>",
+          "vt_malicious": "<<virustotal.body.data.attributes.last_analysis_stats>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "mitre_mapping",
+      "disabled": false,
+      "description": null,
+      "guid": "5efb68871a0aad92cb7008b89f88efef",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "src_ip": "<<merge_enrichment.src_ip>>",
+          "alert_name": "<<merge_enrichment.alert_name>>",
+          "severity": "<<merge_enrichment.severity>>",
+          "host": "<<merge_enrichment.host>>",
+          "event_id": "<<merge_enrichment.event_id>>",
+          "abuse_score": "<<merge_enrichment.abuse_score>>",
+          "abuse_country": "<<merge_enrichment.abuse_country>>",
+          "abuse_isp": "<<merge_enrichment.abuse_isp>>",
+          "abuse_total_reports": "<<merge_enrichment.abuse_total_reports>>",
+          "abuse_usage_type": "<<merge_enrichment.abuse_usage_type>>",
+          "vt_malicious": "<<merge_enrichment.vt_malicious>>",
+          "mitre_technique_id": "<<SWITCH(webhook_action.body.alert_name, \"Brute Force\", \"T1110\", \"PowerShell Abuse Detected\", \"T1059.001\", \"DNS Beaconing Detected\", \"T1071.004\", \"Suspicious Process Detected\", \"T1055\", \"Lateral Movement Detected\", \"T1021\", \"T0000\")>>",
+          "mitre_technique_name": "<<SWITCH(webhook_action.body.alert_name, \"Brute Force\", \"Brute Force\", \"PowerShell Abuse Detected\", \"Command and Scripting Interpreter\", \"DNS Beaconing Detected\", \"Application Layer Protocol\", \"Suspicious Process Detected\", \"Process Injection\", \"Lateral Movement Detected\", \"Remote Services\", \"Unknown Technique\")>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "ai_analysis",
+      "disabled": false,
+      "description": null,
+      "guid": "259e2289dbf6bbe5612691ae5e022424",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "content_type": "application_json",
+        "method": "post",
+        "payload": {
+          "model": "gpt-3.5-turbo",
+          "max_tokens": 1024,
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a SOC analyst assistant. Analyze security alerts and provide concise incident summaries."
+            },
+            {
+              "role": "user",
+              "content": "Analyze this alert:\n- IP: {{ <<mitre_mapping.src_ip>>}}\n- Alert: {{ <<mitre_mapping.alert_name>>}}\n- Severity: {{ <<mitre_mapping.severity>>}}\n- MITRE: {{ <<mitre_mapping.mitre_technique_id>> }} - {{ <<mitre_mapping.mitre_technique_name>>}}\n- Abuse Score: {{ <<mitre_mapping.abuse_score>>}}/100\n- Country: {{ <<mitre_mapping.abuse_country>>}}\n- ISP: {{ <<mitre_mapping.abuse_isp>>}}\n- VT Malicious: {{ <<mitre_mapping.vt_malicious>>}}\n\nRespond in this format:\nSEVERITY VERDICT: [CRITICAL/HIGH/MEDIUM/LOW]\nSUMMARY: [2-3 sentences]\nRECOMMENDATION: [next action]\nCONFIDENCE: [HIGH/MEDIUM/LOW] because [reason]"
+            }
+          ]
+        },
+        "headers": {
+          "Authorization": "",
+          "Content-Type": "application/json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "severity_check",
+      "disabled": false,
+      "description": null,
+      "guid": "a6251e8ee9482b5dd151fb16b979045f",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "rules": [
+          {
+            "path": "=mitre_mapping.bodyabuse_score",
+            "type": "field>value",
+            "value": "80"
+          }
+        ]
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::EmailAgent",
+      "name": "High Severity",
+      "disabled": false,
+      "description": null,
+      "guid": "956bac2bff36c8fda48f267a2d8c3e7c",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "recipients": [],
+        "reply_to": "",
+        "sender_name": "Hir Doshi",
+        "subject": "🚨 CRITICAL SOC ALERT — <<mitre_mapping.src_ip>> ",
+        "body": "AUTOMATED SOC ALERT REPORT\\n\\n=== ALERT DETAILS ===\\nIP Address: <<mitre_mapping.src_ip>>\\nAlert: <<mitre_mapping.alert_name>>\\nSeverity: <<mitre_mapping.severity>>\\nHost: <<mitre_mapping.host>>\\n\\n=== THREAT INTELLIGENCE ===\\nAbuse Score: <<mitre_mapping.abuse_score>>/100\\nCountry: <<mitre_mapping.abuse_country>>\\nISP: <<mitre_mapping.abuse_isp>>\\nTotal Reports: <<mitre_mapping.abuse_total_reports>>\\nVT Malicious: <<mitre_mapping.vt_malicious>>\\n=== MITRE ATT&CK ===\\nTechnique: <<mitre_mapping.mitre_technique_id>>- <<mitre_mapping.mitre_technique_name>>\\n\\n=== AI ANALYSIS ===\\n<<ai_analysis.body.choices>>\\n\\nGenerated by SOC Alert Triage Engine — Tines",
+        "advanced_html": true,
+        "cc": [],
+        "bcc": [],
+        "sender_address": ""
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EmailAgent",
+      "name": "Low Severity",
+      "disabled": false,
+      "description": null,
+      "guid": "e70c5b7bdc6a04578ad63a361d5a134a",
+      "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+      "options": {
+        "recipients": [],
+        "reply_to": "",
+        "sender_name": "Hir Doshi",
+        "subject": "⚠️ SOC ALERT — <<mitre_mapping.src_ip>> requires review",
+        "body": "AUTOMATED SOC ALERT REPORT\\n\\n=== ALERT DETAILS ===\\nIP Address: <<mitre_mapping.src_ip>>\\nAlert: <<mitre_mapping.alert_name>>\\nSeverity: <<mitre_mapping.severity>>\\nHost: <<mitre_mapping.host>>\\n\\n=== THREAT INTELLIGENCE ===\\nAbuse Score: <<mitre_mapping.abuse_score>>/100\\nCountry: <<mitre_mapping.abuse_country>>\\nISP: <<mitre_mapping.abuse_isp>>\\nTotal Reports: <<mitre_mapping.abuse_total_reports>>\\nVT Malicious: <<mitre_mapping.vt_malicious>>\\n=== MITRE ATT&CK ===\\nTechnique: <<mitre_mapping.mitre_technique_id>>- <<mitre_mapping.mitre_technique_name>>\\n\\n=== AI ANALYSIS ===\\n<<ai_analysis.body.choices>>\\n\\nGenerated by SOC Alert Triage Engine — Tines",
+        "advanced_html": true,
+        "cc": [],
+        "bcc": [],
+        "sender_address": ""
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 0,
+      "receiver": 2
+    },
+    {
+      "source": 0,
+      "receiver": 3
+    },
+    {
+      "source": 1,
+      "receiver": 4
+    },
+    {
+      "source": 2,
+      "receiver": 4
+    },
+    {
+      "source": 3,
+      "receiver": 4
+    },
+    {
+      "source": 4,
+      "receiver": 5
+    },
+    {
+      "source": 5,
+      "receiver": 6
+    },
+    {
+      "source": 6,
+      "receiver": 7
+    },
+    {
+      "source": 7,
+      "receiver": 8
+    },
+    {
+      "source": 7,
+      "receiver": 9,
+      "link_type": "secondary"
+    }
+  ],
+  "diagram_layout": "{\"104cbfef578cdba527e98a071f45bf00\":[390,495],\"259e2289dbf6bbe5612691ae5e022424\":[360,885],\"50adabc0ec57627d7d4048c4f0f9f1f7\":[390,360],\"5efb68871a0aad92cb7008b89f88efef\":[360,765],\"65f360b8c1062c893afebf6f831d3256\":[360,660],\"956bac2bff36c8fda48f267a2d8c3e7c\":[195,1110],\"a6251e8ee9482b5dd151fb16b979045f\":[360,1005],\"dadd001c4ccc56dca10871bdc85f80bd\":[150,495],\"e70c5b7bdc6a04578ad63a361d5a134a\":[540,1155],\"ffec7eb822eeeee3867c40bcba58aa89\":[645,495]}",
+  "story_library_metadata": {},
+  "monitor_failures": false,
+  "synchronous_webhooks_enabled": false,
+  "integrations": [],
+  "sections": [],
+  "parent_only_send_to_story": false,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "keep_events_for": 86400,
+  "reporting_status": true,
+  "send_to_story_enabled": false,
+  "entry_agent_guid": null,
+  "exit_agent_guids": [],
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_skill_use_requires_confirmation": true,
+  "pages": [],
+  "tags": [],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "cloud:4204a767c719d669d37ec4520330d74c:ebff7ee5059f9cd8268503853be122dd",
+  "recipients": [],
+  "integration_product": null,
+  "integration_vendor": null,
+  "llm_product_instructions": "",
+  "start_reference": null,
+  "send_to_stories": [],
+  "exported_at": "2026-03-22T20:03:40Z",
+  "icon": ":art:"
+}
